@@ -1,0 +1,177 @@
+openapi: 3.0.3
+info:
+  title: Go Starter API
+  version: 1.0.0
+  description: Dokumentasi API sederhana untuk project starter Go.
+servers:
+  - url: http://localhost:8080
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          example: demo@example.com
+        password:
+          type: string
+          example: password123
+    ProductRequest:
+      type: object
+      required: [name, price, stock]
+      properties:
+        name:
+          type: string
+          example: Keyboard Mechanical
+        description:
+          type: string
+          example: Keyboard untuk belajar coding
+        price:
+          type: integer
+          example: 450000
+        stock:
+          type: integer
+          example: 12
+paths:
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: Login user
+      parameters:
+        - in: header
+          name: X-Tenant-Id
+          required: true
+          schema:
+            type: string
+            example: tenant-demo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login berhasil
+        '401':
+          description: Login gagal
+  /api/v1/auth/me:
+    get:
+      tags: [Auth]
+      summary: Ambil profile user
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: header
+          name: X-Tenant-Id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Sukses
+  /api/v1/products:
+    get:
+      tags: [Products]
+      summary: List products
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: header
+          name: X-Tenant-Id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Sukses
+    post:
+      tags: [Products]
+      summary: Create product
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: header
+          name: X-Tenant-Id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductRequest'
+      responses:
+        '201':
+          description: Product dibuat
+  /api/v1/products/{id}:
+    get:
+      tags: [Products]
+      summary: Detail product
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: header
+          name: X-Tenant-Id
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Sukses
+    put:
+      tags: [Products]
+      summary: Update product
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: header
+          name: X-Tenant-Id
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductRequest'
+      responses:
+        '200':
+          description: Product diubah
+    delete:
+      tags: [Products]
+      summary: Delete product
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: header
+          name: X-Tenant-Id
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Product dihapus

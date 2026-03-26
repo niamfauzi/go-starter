@@ -1,0 +1,57 @@
+version: "3.8"
+
+services:
+  api:
+    image: local/dev-go-air:1.25
+    pull_policy: never
+    container_name: go_api_dev
+    working_dir: /workspace
+    platform: linux/arm64
+
+    ports:
+      - "8080:8080"
+
+    env_file:
+      - /Users/xxx/Dev/projects/Research/go-api/.env
+
+    environment:
+      APP_ENV: development
+      HTTP_PORT: "8080"
+      GORM_DEBUG: "true"
+      LOG_LEVEL: "debug"
+
+      # Kalau MySQL / Redis ada di host machine:
+      # MYSQL_DSN: root:root@tcp(host.docker.internal:3306)/app_db?charset=utf8mb4&parseTime=True&loc=Local
+      # REDIS_ADDR: host.docker.internal:6379
+
+      # Kalau MySQL / Redis ada di docker compose lain dan satu network:
+      # MYSQL_DSN: root:root@tcp(mysql:3306)/app_db?charset=utf8mb4&parseTime=True&loc=Local
+      # REDIS_ADDR: redis:6379
+
+    volumes:
+      # WAJIB: pakai path absolute symlink Dockge, jangan pakai .
+      - /Users/xxx/dev/dockge/data/stacks/go-api:/workspace
+
+      # cache Go
+      - gomodcache:/go/pkg/mod
+      - gobuildcache:/root/.cache/go-build
+
+    # WAJIB: air pakai path absolute
+    command: ["air", "-c", "/workspace/.air.toml"]
+
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+    # Kalau MySQL/Redis ada di docker network lain, aktifkan ini
+    # networks:
+    #   - default
+    #   - shared_backend
+
+volumes:
+  gomodcache:
+  gobuildcache:
+
+# networks:
+#   shared_backend:
+#     external: true
+#     name: shared_backend

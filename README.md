@@ -350,6 +350,141 @@ curl http://localhost:8080/healthz
 
 Kalau keluar `ok`, berarti setup berhasil.
 
+### 8. Jalankan migration
+
+Buka terminal container dari Dockge, lalu jalankan:
+
+```bash
+go run ./cmd/migrate up
+```
+
+Kalau berhasil, akan muncul output:
+
+```text
+migration up selesai
+```
+
+### 9. Jalankan seeder
+
+Masih dari terminal container yang sama, jalankan:
+
+```bash
+go run ./cmd/seeder
+```
+
+Seeder ini akan membuat:
+
+- user `tenant-demo`
+- user `tenant-other`
+- sample product untuk `tenant-demo`
+
+Credential demo default:
+
+```text
+tenant_id: tenant-demo
+email    : demo@example.com
+password : password123
+```
+
+### 10. Uji coba endpoint auth, product, dan user
+
+Base URL local:
+
+```text
+http://localhost:8080
+```
+
+Header yang wajib dikirim untuk semua request API:
+
+```text
+X-Tenant-Id: tenant-demo
+```
+
+#### Auth module
+
+Login untuk mengambil access token:
+
+```bash
+curl --location 'http://localhost:8080/api/v1/auth/login' \
+  --header 'Content-Type: application/json' \
+  --header 'X-Tenant-Id: tenant-demo' \
+  --data-raw '{
+    "email": "demo@example.com",
+    "password": "password123"
+  }'
+```
+
+Setelah login berhasil, ambil nilai `data.access_token` dari response lalu pakai sebagai Bearer token.
+
+Cek profile user login:
+
+```bash
+curl --location 'http://localhost:8080/api/v1/auth/me' \
+  --header 'Authorization: Bearer <ACCESS_TOKEN>' \
+  --header 'X-Tenant-Id: tenant-demo'
+```
+
+Catatan:
+
+- module `user` saat ini belum membuka endpoint `/users`
+- data user diuji lewat endpoint `auth/me`
+
+#### Product module
+
+Ambil list product:
+
+```bash
+curl --location 'http://localhost:8080/api/v1/products' \
+  --header 'Authorization: Bearer <ACCESS_TOKEN>' \
+  --header 'X-Tenant-Id: tenant-demo'
+```
+
+Buat product baru:
+
+```bash
+curl --location 'http://localhost:8080/api/v1/products' \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: Bearer <ACCESS_TOKEN>' \
+  --header 'X-Tenant-Id: tenant-demo' \
+  --data-raw '{
+    "name": "Laundry Bag Premium",
+    "description": "Tas laundry kapasitas besar",
+    "price": 125000,
+    "stock": 10
+  }'
+```
+
+Ambil detail product:
+
+```bash
+curl --location 'http://localhost:8080/api/v1/products/1' \
+  --header 'Authorization: Bearer <ACCESS_TOKEN>' \
+  --header 'X-Tenant-Id: tenant-demo'
+```
+
+Update product:
+
+```bash
+curl --location --request PUT 'http://localhost:8080/api/v1/products/1' \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: Bearer <ACCESS_TOKEN>' \
+  --header 'X-Tenant-Id: tenant-demo' \
+  --data-raw '{
+    "name": "Laundry Bag Premium Updated",
+    "description": "Tas laundry kapasitas besar versi update",
+    "price": 150000,
+    "stock": 15
+  }'
+```
+
+Hapus product:
+
+```bash
+curl --location --request DELETE 'http://localhost:8080/api/v1/products/1' \
+  --header 'Authorization: Bearer <ACCESS_TOKEN>' \
+  --header 'X-Tenant-Id: tenant-demo'
+```
+
 ---
 
 ## Daily Development Workflow

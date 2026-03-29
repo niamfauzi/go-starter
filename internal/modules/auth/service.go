@@ -5,9 +5,9 @@ import (
 	"errors"
 	"time"
 
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
+	"github.com/niamfauzi/go-starter/internal/modules/user"
 	"github.com/niamfauzi/go-starter/internal/shared/apperror"
 )
 
@@ -25,7 +25,7 @@ func NewService(repo *Repository, jwtManager *JWTManager) *Service {
 }
 
 func (s *Service) Login(ctx context.Context, tenantID string, req LoginRequest) (*LoginResponse, error) {
-	user, err := s.repo.FindByEmail(ctx, tenantID, req.Email)
+	foundUser, err := s.repo.FindByEmail(ctx, tenantID, req.Email)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, apperror.Unauthorized("email atau password salah")
@@ -33,15 +33,15 @@ func (s *Service) Login(ctx context.Context, tenantID string, req LoginRequest) 
 		return nil, err
 	}
 
-	if !user.IsActive {
+	if !foundUser.IsActive {
 		return nil, apperror.Unauthorized("akun tidak aktif")
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
+	if err := ComparePassword(foundUser.PasswordHash, req.Password); err != nil {
 		return nil, apperror.Unauthorized("email atau password salah")
 	}
 
-	token, expiresAt, err := s.jwt.GenerateAccessToken(*user)
+	token, expiresAt, err := s.jwt.GenerateAccessToken(*foundUser)
 	if err != nil {
 		return nil, err
 	}
@@ -50,27 +50,16 @@ func (s *Service) Login(ctx context.Context, tenantID string, req LoginRequest) 
 		AccessToken: token,
 		TokenType:   "Bearer",
 		ExpiresIn:   int64(time.Until(expiresAt).Seconds()),
-		User: UserInfo{
-			ID:       user.ID,
-			TenantID: user.TenantID,
-			Name:     user.Name,
-			Email:    user.Email,
-			Role:     user.Role,
-		},
+		User:        user.ToSummary(foundUser),
 	}, nil
 }
 
-func (s *Service) Me(ctx context.Context, tenantID string, userID uint64) (*UserInfo, error) {
-	user, err := s.repo.FindByID(ctx, tenantID, userID)
+func (s *Service) Me(ctx context.Context, tenantID string, userID uint64) (*user.Summary, error) {
+	foundUser, err := s.repo.FindByID(ctx, tenantID, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	return &UserInfo{
-		ID:       user.ID,
-		TenantID: user.TenantID,
-		Name:     user.Name,
-		Email:    user.Email,
-		Role:     user.Role,
-	}, nil
+	summary := user.ToSummary(foundUser)
+	return &summary, nil
 }

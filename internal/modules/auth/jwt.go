@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/niamfauzi/go-starter/internal/modules/user"
 )
 
 // Claims adalah data yang akan kita simpan di JWT.
@@ -32,18 +33,18 @@ func NewJWTManager(secret string, issuer string, ttl time.Duration) *JWTManager 
 	}
 }
 
-func (m *JWTManager) GenerateAccessToken(user User) (string, time.Time, error) {
+func (m *JWTManager) GenerateAccessToken(entity user.Entity) (string, time.Time, error) {
 	now := time.Now()
 	expiresAt := now.Add(m.ttl)
 
 	claims := Claims{
-		UserID:   user.ID,
-		TenantID: user.TenantID,
-		Email:    user.Email,
-		Role:     user.Role,
+		UserID:   entity.ID,
+		TenantID: entity.TenantID,
+		Email:    entity.Email,
+		Role:     entity.Role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    m.issuer,
-			Subject:   strconv.FormatUint(user.ID, 10),
+			Subject:   strconv.FormatUint(entity.ID, 10),
 			IssuedAt:  jwt.NewNumericDate(now),
 			ExpiresAt: jwt.NewNumericDate(expiresAt),
 		},
@@ -63,7 +64,6 @@ func (m *JWTManager) ParseAccessToken(tokenString string) (*Claims, error) {
 	claims := &Claims{}
 
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (any, error) {
-		// Validasi algoritma penting agar token tidak diterima dengan metode yang tidak kita harapkan.
 		if token.Method == nil || token.Method.Alg() != jwt.SigningMethodHS256.Alg() {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}

@@ -3,7 +3,6 @@ package integration_test
 import (
 	"bytes"
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -13,23 +12,24 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"go.uber.org/zap"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
-	"github.com/niamfauzi/go-starter/configs"
-	"github.com/niamfauzi/go-starter/internal/auth"
+	"github.com/niamfauzi/go-starter/internal/modules/auth"
+	"github.com/niamfauzi/go-starter/internal/modules/product"
+	"github.com/niamfauzi/go-starter/internal/modules/user"
 	"github.com/niamfauzi/go-starter/internal/platform/db"
 	platformhttp "github.com/niamfauzi/go-starter/internal/platform/http"
-	"github.com/niamfauzi/go-starter/internal/product"
+	sharedvalidator "github.com/niamfauzi/go-starter/internal/shared/validator"
 )
 
 func TestAPIIntegration(t *testing.T) {
+	testcontainers.SkipIfProviderIsNotHealthy(t)
+
 	ctx := context.Background()
 
 	mysqlContainer, mysqlDSN := startMySQL(t, ctx)
@@ -52,16 +52,18 @@ func TestAPIIntegration(t *testing.T) {
 	seedTestData(t, gormDB)
 
 	redisClient := redis.NewClient(&redis.Options{Addr: redisAddr})
-	validate := validator.New()
+	validate := sharedvalidator.New()
 
-	authRepo := auth.NewRepository(gormDB)
+	userRepo := user.NewRepository(gormDB)
+	authRepo := auth.NewRepository(userRepo)
 	jwtManager := auth.NewJWTManager("test-secret", "go-starter-test", 15*time.Minute)
 	authService := auth.NewService(authRepo, jwtManager)
-	authHandler := auth.NewHandler(authService, validate, appLogger)
+	authHandler := auth.NewHTTPDelivery(authService, validate, appLogger)
 
 	productRepo := product.NewRepository(gormDB)
-	productService := product.NewService(productRepo, redisClient, appLogger)
-	productHandler := product.NewHandler(productService, validate, appLogger)
+	productCache := product.NewCache(redisClient, 30*time.Second)
+	productService := product.NewService(productRepo, productCache, appLogger)
+	productHandler := product.NewHTTPDelivery(productService, validate, appLogger)
 
 	router := platformhttp.NewRouter(appLogger, authHandler, productHandler, jwtManager)
 	server := httptest.NewServer(router)
@@ -204,10 +206,10 @@ func startRedis(t *testing.T, ctx context.Context) (testcontainers.Container, st
 func seedTestData(t *testing.T, gormDB *gorm.DB) {
 	t.Helper()
 
-	hash, err := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
+	hash, err := auth.HashPassword("password123")
 	require.NoError(t, err)
 
-	users := []auth.User{
+	users := []user.Entity{
 		{TenantID: "tenant-demo", Name: "Demo User", Email: "demo@example.com", PasswordHash: string(hash), Role: "admin", IsActive: true},
 		{TenantID: "tenant-other", Name: "Other User", Email: "other@example.com", PasswordHash: string(hash), Role: "admin", IsActive: true},
 	}
@@ -263,7 +265,3 @@ func projectPath(rel string) string {
 	wd, _ := os.Getwd()
 	return filepath.Clean(filepath.Join(wd, "..", "..", rel))
 }
-
-// Pastikan import configs tetap dipakai dalam project test starter ini.
-var _ = configs.Config{}
-var _ *sql.DB

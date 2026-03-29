@@ -6,8 +6,8 @@ import (
 	"gorm.io/gorm"
 )
 
-// Product adalah model database untuk tabel products.
-type Product struct {
+// Entity adalah model database untuk tabel products.
+type Entity struct {
 	ID          uint64         `gorm:"column:id;primaryKey" json:"id"`
 	TenantID    string         `gorm:"column:tenant_id" json:"tenant_id"`
 	Name        string         `gorm:"column:name" json:"name"`
@@ -19,6 +19,6 @@ type Product struct {
 	DeletedAt   gorm.DeletedAt `gorm:"column:deleted_at;index" json:"-"`
 }
 
-func (Product) TableName() string {
+func (Entity) TableName() string {
 	return "products"
 }

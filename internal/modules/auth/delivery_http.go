@@ -13,15 +13,15 @@ import (
 	"github.com/niamfauzi/go-starter/internal/shared/tenant"
 )
 
-// Handler menangani request/response HTTP untuk fitur auth.
-type Handler struct {
+// HTTPDelivery menangani request/response HTTP untuk fitur auth.
+type HTTPDelivery struct {
 	service  *Service
 	validate *validator.Validate
 	logger   *zap.Logger
 }
 
-func NewHandler(service *Service, validate *validator.Validate, logger *zap.Logger) *Handler {
-	return &Handler{
+func NewHTTPDelivery(service *Service, validate *validator.Validate, logger *zap.Logger) *HTTPDelivery {
+	return &HTTPDelivery{
 		service:  service,
 		validate: validate,
 		logger:   logger,
@@ -29,7 +29,7 @@ func NewHandler(service *Service, validate *validator.Validate, logger *zap.Logg
 }
 
 // Login menangani proses login.
-func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
+func (h *HTTPDelivery) Login(w http.ResponseWriter, r *http.Request) {
 	tenantID, ok := tenant.FromContext(r.Context())
 	if !ok || tenantID == "" {
 		response.Error(w, apperror.BadRequest("header X-Tenant-Id wajib diisi"))
@@ -61,7 +61,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 // Me mengambil profile user yang sedang login.
-func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
+func (h *HTTPDelivery) Me(w http.ResponseWriter, r *http.Request) {
 	authUser, ok := FromContext(r.Context())
 	if !ok {
 		response.Error(w, apperror.Unauthorized("unauthorized"))

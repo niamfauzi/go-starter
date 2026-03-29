@@ -1,0 +1,215 @@
+Saya ingin kamu menyesuaikan dan merapikan project backend Go saya ke struktur **Versi siap berkembang**.
+
+Konteks:
+Project ini adalah starter backend Go yang ditujukan untuk:
+- ramah untuk pemula
+- tetap mengikuti praktik industri yang masuk akal
+- mudah dikembangkan saat fitur bertambah
+- tidak terlalu enterprise, tapi lebih siap berkembang dibanding versi sederhana
+
+Ketentuan utama:
+- gunakan Go
+- module wajib: github.com/niamfauzi/go-starter
+- gunakan GORM untuk ORM
+- migration TIDAK BOLEH menggunakan GORM AutoMigrate
+- migration harus tetap berupa file SQL manual
+- tetap gunakan package-based structure
+- jelaskan step by step agar saya paham alasan perubahan strukturnya
+- semua code harus konsisten dengan struktur baru
+
+Struktur target yang saya inginkan adalah **Versi siap berkembang** seperti ini:
+
+.
+├── cmd/
+│   ├── api/
+│   │   └── main.go
+│   └── seeder/
+│       └── main.go
+├── configs/
+│   ├── config.go
+│   └── env.go
+├── docs/
+│   └── swagger.yaml
+├── internal/
+│   ├── modules/
+│   │   ├── auth/
+│   │   │   ├── delivery_http.go
+│   │   │   ├── service.go
+│   │   │   ├── repository.go
+│   │   │   ├── entity.go
+│   │   │   ├── dto.go
+│   │   │   ├── jwt.go
+│   │   │   ├── password.go
+│   │   │   └── context.go
+│   │   ├── product/
+│   │   │   ├── delivery_http.go
+│   │   │   ├── service.go
+│   │   │   ├── repository.go
+│   │   │   ├── entity.go
+│   │   │   ├── dto.go
+│   │   │   ├── cache.go
+│   │   │   └── mapper.go
+│   │   └── user/
+│   │       ├── service.go
+│   │       ├── repository.go
+│   │       ├── entity.go
+│   │       └── dto.go
+│   ├── platform/
+│   │   ├── db/
+│   │   │   ├── mysql.go
+│   │   │   └── gorm.go
+│   │   ├── cache/
+│   │   │   └── redis.go
+│   │   ├── http/
+│   │   │   ├── router.go
+│   │   │   ├── server.go
+│   │   │   └── middleware/
+│   │   │       ├── auth.go
+│   │   │       ├── cors.go
+│   │   │       ├── logging.go
+│   │   │       ├── recovery.go
+│   │   │       ├── requestid.go
+│   │   │       ├── tenant.go
+│   │   │       └── timeout.go
+│   │   └── logger/
+│   │       └── zap.go
+│   └── shared/
+│       ├── apperror/
+│       │   ├── error.go
+│       │   └── mapper.go
+│       ├── response/
+│       │   └── json.go
+│       ├── validator/
+│       │   └── validator.go
+│       └── tenant/
+│           └── context.go
+├── migrations/
+├── scripts/
+├── tests/
+│   └── integration/
+├── docker-compose.yml
+├── go.mod
+└── README.md
+
+Tujuan penyesuaian:
+Saya ingin project ini dipindahkan dari struktur yang lebih sederhana menjadi struktur yang lebih siap berkembang, dengan aturan berikut:
+- `modules/` berisi fitur bisnis
+- `platform/` berisi komponen teknis/infrastruktur
+- `shared/` berisi utilitas lintas modul
+- tetap mudah dipahami pemula
+- tetap menjaga separation of concern
+- jangan menambahkan abstraction yang belum perlu
+
+Project harus tetap memiliki fitur berikut:
+1. Auth JWT
+2. CRUD products
+3. Middleware
+4. Validation
+5. Logging
+6. Redis cache
+7. Swagger
+8. Docker Compose
+9. SQL migration manual
+10. Seeder
+11. Error handling / exception handling
+12. Integration test
+
+Penyesuaian yang saya inginkan:
+
+A. REFACTOR STRUKTUR
+- pindahkan feature `auth` ke `internal/modules/auth`
+- pindahkan feature `product` ke `internal/modules/product`
+- bila tabel `users` dipakai lintas feature, buat `internal/modules/user`
+- pisahkan kode teknis ke `internal/platform`
+- pisahkan helper umum ke `internal/shared`
+- update semua import path agar sesuai dengan module `github.com/niamfauzi/go-starter`
+
+B. PENYESUAIAN PENAMAAN FILE
+Saya ingin penamaan file mengikuti struktur siap berkembang:
+- `handler.go` bisa diubah menjadi `delivery_http.go`
+- `model.go` bisa diubah menjadi `entity.go`
+- request/response struct dipisah ke `dto.go`
+- helper hashing password dipisah ke `password.go`
+- JWT logic dipisah ke `jwt.go`
+- context auth dipisah ke `context.go`
+- cache helper product dipisah ke `cache.go`
+- mapper entity <-> response dipisah ke `mapper.go`
+
+Tapi:
+- jika ada file yang tidak perlu dipisah, jelaskan alasannya
+- jangan memecah file hanya demi terlihat kompleks
+
+C. ATURAN DESAIN
+Terapkan aturan berikut:
+- `modules/` hanya berisi logic bisnis per fitur
+- `platform/` hanya berisi hal teknis seperti DB, Redis, logger, HTTP server, middleware
+- `shared/` hanya berisi utilitas yang dipakai lintas modul
+- 1 tabel database = 1 entity utama
+- jangan duplikasi entity GORM yang sama di banyak modul
+- jika modul lain hanya butuh sebagian field, gunakan DTO / projection struct
+- semua query tetap tenant-aware
+- tenant diambil dari header `X-Tenant-Id`
+- JWT tetap dipakai untuk endpoint terproteksi
+- migration tetap SQL manual, bukan AutoMigrate
+
+D. YANG HARUS KAMU JELASKAN
+Saya ingin penjelasan yang sangat ramah pemula:
+- kenapa `auth` dan `product` dipindah ke `modules/`
+- kenapa `platform/` dipisah dari `modules/`
+- kenapa `shared/` dibutuhkan
+- kapan sesuatu harus masuk `modules/`, `platform/`, atau `shared/`
+- kenapa entity utama tidak boleh diduplikasi di banyak modul
+- kapan perlu membuat DTO, mapper, atau projection
+- kenapa struktur ini lebih siap berkembang
+- apa trade-off dibanding versi sederhana
+
+E. YANG HARUS KAMU HASILKAN
+Output yang saya inginkan:
+1. gambaran besar perubahan struktur
+2. alasan kenapa struktur baru lebih cocok untuk project yang mulai berkembang
+3. struktur folder final lengkap
+4. daftar file yang dipindah / diubah / ditambah
+5. isi code lengkap per file yang relevan
+6. penjelasan setiap file dengan bahasa sederhana
+7. panduan refactor step by step dari struktur lama ke struktur baru
+8. contoh import path baru
+9. panduan cara menambah modul baru setelah struktur ini diterapkan
+10. best practice dan common mistakes untuk pemula
+
+F. PANDUAN SESI BELAJAR
+Tolong susun jawaban dalam sesi seperti ini:
+
+- Sesi 1: Gambaran besar refactor ke versi siap berkembang
+- Sesi 2: Menata folder modules, platform, dan shared
+- Sesi 3: Refactor auth module
+- Sesi 4: Refactor product module
+- Sesi 5: Menambahkan user module bila diperlukan
+- Sesi 6: Menata middleware, HTTP server, logger, DB, Redis di platform
+- Sesi 7: Menata app error, response helper, validator helper, tenant helper di shared
+- Sesi 8: Update router, wiring, import path, dan main.go
+- Sesi 9: Update integration test, seeder, migration, dan Swagger bila perlu
+- Sesi 10: Panduan cara menambah modul baru dengan struktur ini
+
+Pada setiap sesi:
+- jelaskan tujuan sesi
+- jelaskan file/folder yang berubah
+- tampilkan code lengkap bila perlu
+- jelaskan hasil akhirnya dengan bahasa sederhana
+
+G. GAYA JAWABAN
+- gunakan bahasa Indonesia
+- sangat ramah untuk pemula
+- beri komentar penting di dalam code
+- jangan terlalu enterprise
+- tetap package-based
+- fokus pada readability, maintainability, dan learning value
+- jangan lompat-lompat
+- jelaskan alasan setiap keputusan desain
+- bila ada keputusan yang bisa diperdebatkan, pilih satu pendekatan yang paling masuk akal lalu jelaskan alasannya
+
+Catatan tambahan:
+- anggap project awal sudah punya auth, product, middleware, Redis, JWT, GORM, migration SQL, seeder, dan integration test
+- tugasmu adalah merapikan dan menyesuaikan ke struktur siap berkembang
+- bila ada bagian yang tidak perlu dipecah lebih lanjut, katakan dengan jujur agar tidak overkill
+- utamakan struktur yang realistis dipakai untuk project kecil-menengah yang mulai berkembang
+- output docs/LEARNING_GUIDE_V2.md

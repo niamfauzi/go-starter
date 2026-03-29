@@ -1,5 +1,7 @@
 # go-starter
 
+> Catatan: dokumen ini menjelaskan struktur versi awal. Untuk struktur versi siap berkembang, lihat `docs/LEARNING_GUIDE_V2.md`.
+
 Starter backend Go yang ramah untuk pemula, tetap sederhana, tetapi mengikuti praktik industri yang masuk akal untuk project kecil-menengah.
 
 Module project ini adalah:
@@ -83,7 +85,7 @@ Fokus pola berpikir agar kamu bisa menambah fitur lain sendiri.
 ├── configs/
 │   └── config.go
 ├── docs/
-│   ├── openapi.yaml
+│   ├── swagger.yaml
 │   └── swagger.html
 ├── internal/
 │   ├── auth/
@@ -512,13 +514,13 @@ Kenapa urutannya begitu?
 
 Project ini menyediakan:
 
-- `docs/openapi.yaml`
+- `docs/swagger.yaml`
 - `docs/swagger.html`
 
 Cara melihat:
 1. Jalankan aplikasi
 2. Buka:
-   - `http://localhost:8080/docs/openapi.yaml`
+   - `http://localhost:8080/docs/swagger.yaml`
    - `http://localhost:8080/docs/swagger.html`
 
 > Catatan: `swagger.html` memakai asset Swagger UI dari CDN supaya setup tetap sederhana untuk pemula.

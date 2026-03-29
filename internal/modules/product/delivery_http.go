@@ -9,27 +9,27 @@ import (
 	"github.com/go-playground/validator/v10"
 	"go.uber.org/zap"
 
-	"github.com/niamfauzi/go-starter/internal/auth"
+	"github.com/niamfauzi/go-starter/internal/modules/auth"
 	"github.com/niamfauzi/go-starter/internal/shared/apperror"
 	"github.com/niamfauzi/go-starter/internal/shared/response"
 )
 
-// Handler menangani HTTP request untuk fitur product.
-type Handler struct {
+// HTTPDelivery menangani HTTP request untuk fitur product.
+type HTTPDelivery struct {
 	service  *Service
 	validate *validator.Validate
 	logger   *zap.Logger
 }
 
-func NewHandler(service *Service, validate *validator.Validate, logger *zap.Logger) *Handler {
-	return &Handler{
+func NewHTTPDelivery(service *Service, validate *validator.Validate, logger *zap.Logger) *HTTPDelivery {
+	return &HTTPDelivery{
 		service:  service,
 		validate: validate,
 		logger:   logger,
 	}
 }
 
-func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
+func (h *HTTPDelivery) List(w http.ResponseWriter, r *http.Request) {
 	authUser, ok := auth.FromContext(r.Context())
 	if !ok {
 		response.Error(w, apperror.Unauthorized("unauthorized"))
@@ -45,7 +45,7 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 	response.Success(w, http.StatusOK, "list product berhasil diambil", products)
 }
 
-func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
+func (h *HTTPDelivery) GetByID(w http.ResponseWriter, r *http.Request) {
 	authUser, ok := auth.FromContext(r.Context())
 	if !ok {
 		response.Error(w, apperror.Unauthorized("unauthorized"))
@@ -67,7 +67,7 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 	response.Success(w, http.StatusOK, "detail product berhasil diambil", product)
 }
 
-func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
+func (h *HTTPDelivery) Create(w http.ResponseWriter, r *http.Request) {
 	authUser, ok := auth.FromContext(r.Context())
 	if !ok {
 		response.Error(w, apperror.Unauthorized("unauthorized"))
@@ -95,7 +95,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	response.Success(w, http.StatusCreated, "product berhasil dibuat", product)
 }
 
-func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
+func (h *HTTPDelivery) Update(w http.ResponseWriter, r *http.Request) {
 	authUser, ok := auth.FromContext(r.Context())
 	if !ok {
 		response.Error(w, apperror.Unauthorized("unauthorized"))
@@ -128,7 +128,7 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 	response.Success(w, http.StatusOK, "product berhasil diubah", product)
 }
 
-func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
+func (h *HTTPDelivery) Delete(w http.ResponseWriter, r *http.Request) {
 	authUser, ok := auth.FromContext(r.Context())
 	if !ok {
 		response.Error(w, apperror.Unauthorized("unauthorized"))

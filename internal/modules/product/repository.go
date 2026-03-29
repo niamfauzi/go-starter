@@ -15,12 +15,12 @@ func NewRepository(db *gorm.DB) *Repository {
 	return &Repository{db: db}
 }
 
-func (r *Repository) Create(ctx context.Context, product *Product) error {
-	return r.db.WithContext(ctx).Create(product).Error
+func (r *Repository) Create(ctx context.Context, entity *Entity) error {
+	return r.db.WithContext(ctx).Create(entity).Error
 }
 
-func (r *Repository) List(ctx context.Context, tenantID string) ([]Product, error) {
-	var products []Product
+func (r *Repository) List(ctx context.Context, tenantID string) ([]Entity, error) {
+	var products []Entity
 	err := r.db.WithContext(ctx).
 		Where("tenant_id = ?", tenantID).
 		Order("id DESC").
@@ -28,8 +28,8 @@ func (r *Repository) List(ctx context.Context, tenantID string) ([]Product, erro
 	return products, err
 }
 
-func (r *Repository) FindByID(ctx context.Context, tenantID string, productID uint64) (*Product, error) {
-	var product Product
+func (r *Repository) FindByID(ctx context.Context, tenantID string, productID uint64) (*Entity, error) {
+	var product Entity
 	err := r.db.WithContext(ctx).
 		Where("tenant_id = ?", tenantID).
 		Where("id = ?", productID).
@@ -40,12 +40,12 @@ func (r *Repository) FindByID(ctx context.Context, tenantID string, productID ui
 	return &product, nil
 }
 
-func (r *Repository) Update(ctx context.Context, product *Product) error {
-	return r.db.WithContext(ctx).Save(product).Error
+func (r *Repository) Update(ctx context.Context, entity *Entity) error {
+	return r.db.WithContext(ctx).Save(entity).Error
 }
 
 func (r *Repository) Delete(ctx context.Context, tenantID string, productID uint64) error {
 	return r.db.WithContext(ctx).
 		Where("tenant_id = ?", tenantID).
-		Delete(&Product{}, productID).Error
+		Delete(&Entity{}, productID).Error
 }

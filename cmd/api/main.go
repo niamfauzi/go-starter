@@ -2,23 +2,23 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	"github.com/go-playground/validator/v10"
 	"go.uber.org/zap"
 
 	"github.com/niamfauzi/go-starter/configs"
-	"github.com/niamfauzi/go-starter/internal/auth"
+	"github.com/niamfauzi/go-starter/internal/modules/auth"
+	"github.com/niamfauzi/go-starter/internal/modules/product"
+	"github.com/niamfauzi/go-starter/internal/modules/user"
 	"github.com/niamfauzi/go-starter/internal/platform/cache"
 	"github.com/niamfauzi/go-starter/internal/platform/db"
 	platformhttp "github.com/niamfauzi/go-starter/internal/platform/http"
 	"github.com/niamfauzi/go-starter/internal/platform/logger"
-	"github.com/niamfauzi/go-starter/internal/product"
+	sharedvalidator "github.com/niamfauzi/go-starter/internal/shared/validator"
 )
 
 func main() {
@@ -38,26 +38,22 @@ func main() {
 	}
 
 	redisClient := cache.NewRedis(cfg)
-	validate := validator.New()
+	validate := sharedvalidator.New()
 
-	// Auth dependencies
-	authRepo := auth.NewRepository(gormDB)
+	userRepo := user.NewRepository(gormDB)
+
+	authRepo := auth.NewRepository(userRepo)
 	jwtManager := auth.NewJWTManager(cfg.JWTSecret, cfg.JWTIssuer, cfg.JWTAccessTokenTTL)
 	authService := auth.NewService(authRepo, jwtManager)
-	authHandler := auth.NewHandler(authService, validate, appLogger)
+	authHandler := auth.NewHTTPDelivery(authService, validate, appLogger)
 
-	// Product dependencies
 	productRepo := product.NewRepository(gormDB)
-	productService := product.NewService(productRepo, redisClient, appLogger)
-	productHandler := product.NewHandler(productService, validate, appLogger)
+	productCache := product.NewCache(redisClient, 30*time.Second)
+	productService := product.NewService(productRepo, productCache, appLogger)
+	productHandler := product.NewHTTPDelivery(productService, validate, appLogger)
 
 	router := platformhttp.NewRouter(appLogger, authHandler, productHandler, jwtManager)
-
-	server := &http.Server{
-		Addr:              fmt.Sprintf(":%s", cfg.AppPort),
-		Handler:           router,
-		ReadHeaderTimeout: 10 * time.Second,
-	}
+	server := platformhttp.NewServer(cfg.AppPort, router)
 
 	go func() {
 		appLogger.Info("server berjalan", zap.String("port", cfg.AppPort))

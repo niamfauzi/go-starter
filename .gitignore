@@ -1,0 +1,33 @@
+# Environment overrides
+.env
+.env.local
+.env.*.local
+
+# Build artifacts
+bin/
+dist/
+build/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+coverage.out
+coverage.html
+
+# Temporary files
+tmp/
+temp/
+*.log
+
+# Go workspace / tooling
+vendor/
+
+# Editor / OS files
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo

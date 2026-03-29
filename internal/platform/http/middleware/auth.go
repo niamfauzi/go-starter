@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/niamfauzi/go-starter/internal/auth"
+	"github.com/niamfauzi/go-starter/internal/modules/auth"
 	"github.com/niamfauzi/go-starter/internal/shared/apperror"
 	"github.com/niamfauzi/go-starter/internal/shared/response"
 	"github.com/niamfauzi/go-starter/internal/shared/tenant"

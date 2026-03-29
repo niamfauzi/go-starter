@@ -5,29 +5,27 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	chimiddleware "github.com/go-chi/chi/v5/middleware"
 	"go.uber.org/zap"
 
-	"github.com/niamfauzi/go-starter/internal/auth"
+	"github.com/niamfauzi/go-starter/internal/modules/auth"
+	"github.com/niamfauzi/go-starter/internal/modules/product"
 	httpmiddleware "github.com/niamfauzi/go-starter/internal/platform/http/middleware"
-	"github.com/niamfauzi/go-starter/internal/product"
 )
 
 // NewRouter menyusun semua route + middleware aplikasi.
 func NewRouter(
 	logger *zap.Logger,
-	authHandler *auth.Handler,
-	productHandler *product.Handler,
+	authHandler *auth.HTTPDelivery,
+	productHandler *product.HTTPDelivery,
 	jwtManager *auth.JWTManager,
 ) http.Handler {
 	r := chi.NewRouter()
 
-	// Middleware umum yang berlaku ke semua endpoint.
-	r.Use(chimiddleware.RequestID)
-	r.Use(chimiddleware.RealIP)
+	r.Use(httpmiddleware.RequestID)
+	r.Use(httpmiddleware.CORS)
 	r.Use(httpmiddleware.Logger(logger))
-	r.Use(chimiddleware.Recoverer)
-	r.Use(chimiddleware.Timeout(30 * time.Second))
+	r.Use(httpmiddleware.Recovery)
+	r.Use(httpmiddleware.Timeout(30 * time.Second))
 	r.Use(httpmiddleware.Tenant)
 
 	r.Get("/healthz", func(w http.ResponseWriter, r *http.Request) {

@@ -1,8 +1,6 @@
 package logger
 
-import (
-	"go.uber.org/zap"
-)
+import "go.uber.org/zap"
 
 // New membuat logger zap.
 // Development memakai format yang lebih ramah dibaca,

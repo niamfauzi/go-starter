@@ -1,0 +1,200 @@
+Saya ingin kamu menambahkan **penjelasan alur kerja request dari awal sampai akhir** ke dalam project backend Go saya, dengan contoh utama **Create Product**.
+
+Konteks project:
+- Go
+- module: github.com/niamfauzi/go-starter
+- package-based structure
+- memakai struktur versi siap berkembang:
+  - internal/modules/
+  - internal/platform/
+  - internal/shared/
+- menggunakan:
+  - chi
+  - GORM
+  - MySQL
+  - Redis
+  - JWT
+  - middleware
+  - validator
+  - zap logging
+  - SQL migration manual
+  - seeder
+  - integration test
+
+Tujuan:
+Saya ingin memahami **alur kerja ketika request masuk** secara utuh, khususnya untuk endpoint:
+
+`POST /api/v1/products`
+
+Saya ingin kamu menjelaskan alurnya dengan sangat ramah untuk pemula, seolah-olah sedang mengajari saya membaca project nyata.
+
+Tolong jelaskan alur lengkap request **Create Product** dari awal sampai akhir, misalnya:
+1. request masuk ke HTTP server
+2. router mencocokkan endpoint
+3. middleware dijalankan satu per satu
+4. tenant diambil dari header `X-Tenant-Id`
+5. JWT dibaca dari header `Authorization`
+6. request body di-parse
+7. request di-validasi
+8. handler memanggil service
+9. service menjalankan business logic
+10. service/repository menyimpan data ke MySQL lewat GORM
+11. cache Redis dihapus / diperbarui bila perlu
+12. response sukses dikembalikan
+13. jika error, bagaimana alurnya sampai response error keluar
+14. logging terjadi di bagian mana saja
+
+Yang saya inginkan:
+- jelaskan **step by step**
+- jelaskan **file mana yang terlibat**
+- jelaskan **fungsi tiap layer**
+- jelaskan **data berpindah dari mana ke mana**
+- jelaskan **kenapa urutannya seperti itu**
+- jelaskan **apa yang terjadi kalau salah satu step gagal**
+
+Saya ingin output seperti ini:
+
+## 1. Gambaran besar alur request
+Beri ringkasan singkat alur request create product dari client sampai database dan kembali ke client.
+
+## 2. Daftar file yang terlibat
+Contoh:
+- cmd/api/main.go
+- internal/platform/http/router.go
+- internal/platform/http/middleware/auth.go
+- internal/platform/http/middleware/tenant.go
+- internal/modules/product/delivery_http.go
+- internal/modules/product/service.go
+- internal/modules/product/repository.go
+- internal/modules/product/entity.go
+- internal/modules/product/dto.go
+- internal/modules/product/cache.go
+- internal/shared/apperror/error.go
+- internal/shared/response/json.go
+
+Lalu jelaskan peran masing-masing file.
+
+## 3. Urutan alur request Create Product
+Tolong jelaskan detail urutan proses request:
+- dari request diterima
+- sampai response dikirim
+
+Gunakan format seperti:
+- Langkah 1
+- Langkah 2
+- Langkah 3
+dst
+
+## 4. Contoh request HTTP
+Berikan contoh request:
+- header
+- body JSON
+
+Contoh:
+- Authorization: Bearer <token>
+- X-Tenant-Id: tenant-001
+
+## 5. Contoh data yang mengalir antar layer
+Tunjukkan contoh:
+- request DTO
+- entity / model
+- data yang disimpan ke DB
+- response DTO
+
+Agar saya paham transformasi datanya.
+
+## 6. Jelaskan peran tiap layer
+Jelaskan secara sederhana:
+- router
+- middleware
+- handler / delivery_http
+- service
+- repository
+- Redis/cache helper
+- shared error
+- shared response
+
+## 7. Alur error
+Jelaskan apa yang terjadi jika:
+- token JWT tidak ada
+- token invalid
+- tenant header tidak ada
+- body JSON invalid
+- validasi gagal
+- database gagal menyimpan
+- cache Redis gagal
+- product tidak valid
+
+Untuk tiap kasus, jelaskan:
+- error muncul di layer mana
+- bagaimana error diteruskan
+- bagaimana response error dibentuk
+
+## 8. Alur logging
+Jelaskan:
+- request di-log di mana
+- error di-log di mana
+- data apa yang aman untuk di-log
+- data apa yang tidak boleh di-log
+
+## 9. Diagram alur sederhana
+Buat diagram teks sederhana seperti ini:
+
+Client
+  -> Router
+  -> Middleware
+  -> Handler
+  -> Service
+  -> Repository
+  -> MySQL
+  -> Redis
+  -> Response
+
+Tapi sesuaikan dengan alur Create Product yang benar.
+
+## 10. Contoh trace request Create Product
+Buat simulasi konkret:
+- user kirim request create product
+- tenant = tenant-001
+- user ID dari JWT = 10
+- product name = "Laptop A"
+- price = 15000000
+- stock = 5
+
+Lalu jelaskan step-by-step apa yang terjadi di setiap layer.
+
+## 11. Hubungkan dengan struktur project
+Saya ingin kamu menjelaskan kenapa alur kerja ini cocok dengan struktur:
+- modules/
+- platform/
+- shared/
+
+Jelaskan:
+- kenapa logic bisnis tidak ditaruh di middleware
+- kenapa parsing request tidak ditaruh di repository
+- kenapa JWT logic tidak ditaruh semua di handler
+- kenapa tenant helper cocok di shared
+- kenapa Redis dan DB cocok di platform
+
+## 12. Tambahkan panduan belajar
+Setelah menjelaskan alur Create Product, tolong beri saya panduan:
+- bagaimana cara membaca alur request untuk endpoint lain
+- bagaimana cara menambah endpoint baru dengan pola yang sama
+- bagaimana cara tracing bug jika request gagal
+
+Gaya jawaban:
+- gunakan bahasa Indonesia
+- sangat ramah untuk pemula
+- jelaskan dengan bahasa sederhana
+- jangan terlalu abstrak
+- gunakan contoh konkret
+- kalau perlu, sertakan pseudo flow atau potongan kode singkat
+- fokus pada pemahaman alur kerja
+- jangan hanya menjelaskan teori, tapi kaitkan ke struktur project nyata
+
+Tambahan:
+Setelah menjelaskan Create Product, tambahkan ringkasan singkat:
+- “kalau nanti saya mau membuat Create Category atau Create Order, pola berpikirnya bagaimana?”
+- dokumentasikan di file docs/LEARNING_FLOW_SYSTEM.md
+
+Tolong jawab secara runtut, jelas, dan mudah dipelajari.

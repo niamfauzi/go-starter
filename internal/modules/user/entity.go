@@ -1,4 +1,4 @@
-package auth
+package user
 
 import (
 	"time"
@@ -6,8 +6,9 @@ import (
 	"gorm.io/gorm"
 )
 
-// User adalah model database untuk tabel users.
-type User struct {
+// Entity adalah representasi tabel users.
+// Entity utama tabel users disimpan di module user agar tidak diduplikasi.
+type Entity struct {
 	ID           uint64         `gorm:"column:id;primaryKey" json:"id"`
 	TenantID     string         `gorm:"column:tenant_id" json:"tenant_id"`
 	Name         string         `gorm:"column:name" json:"name"`
@@ -20,14 +21,6 @@ type User struct {
 	DeletedAt    gorm.DeletedAt `gorm:"column:deleted_at;index" json:"-"`
 }
 
-func (User) TableName() string {
+func (Entity) TableName() string {
 	return "users"
-}
-
-// AuthUser adalah data user yang sudah lolos autentikasi dan aman disimpan ke context.
-type AuthUser struct {
-	UserID   uint64 `json:"user_id"`
-	TenantID string `json:"tenant_id"`
-	Email    string `json:"email"`
-	Role     string `json:"role"`
 }

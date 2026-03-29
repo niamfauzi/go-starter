@@ -1,4 +1,4 @@
-package auth
+package user
 
 import (
 	"context"
@@ -15,8 +15,8 @@ func NewRepository(db *gorm.DB) *Repository {
 	return &Repository{db: db}
 }
 
-func (r *Repository) FindByEmail(ctx context.Context, tenantID string, email string) (*User, error) {
-	var user User
+func (r *Repository) FindByEmail(ctx context.Context, tenantID string, email string) (*Entity, error) {
+	var user Entity
 	err := r.db.WithContext(ctx).
 		Where("tenant_id = ?", tenantID).
 		Where("email = ?", email).
@@ -27,8 +27,8 @@ func (r *Repository) FindByEmail(ctx context.Context, tenantID string, email str
 	return &user, nil
 }
 
-func (r *Repository) FindByID(ctx context.Context, tenantID string, userID uint64) (*User, error) {
-	var user User
+func (r *Repository) FindByID(ctx context.Context, tenantID string, userID uint64) (*Entity, error) {
+	var user Entity
 	err := r.db.WithContext(ctx).
 		Where("tenant_id = ?", tenantID).
 		Where("id = ?", userID).
@@ -37,4 +37,10 @@ func (r *Repository) FindByID(ctx context.Context, tenantID string, userID uint6
 		return nil, err
 	}
 	return &user, nil
+}
+
+func (r *Repository) CreateIfNotExists(ctx context.Context, entity *Entity) error {
+	return r.db.WithContext(ctx).
+		Where("tenant_id = ? AND email = ?", entity.TenantID, entity.Email).
+		FirstOrCreate(entity).Error
 }
